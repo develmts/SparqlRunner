@@ -126,6 +126,104 @@ function buildTranslationsQuery(qid: string): string {
 }
 
 /**
+ * Build a semantic-cluster SPARQL query for GIVEN NAMES.
+ *
+ * Goal
+ * ----
+ * Return given names (items of Q202444) that are *named after* (P138)
+ * something that belongs to one or more root concepts (QIDs) you provide.
+ * This lets you fetch clusters like “Flowers”, “Animals”, “Mythology”, “Celestial”, etc.
+ *
+ * How it works
+ * ------------
+ * - We restrict ?item to "given name" (wdt:P31 wd:Q202444).
+ * - We require ?item wdt:P138 ?origin (the thing the name is named after).
+ * - We check that ?origin is either:
+ *      (A) a subclass (wdt:P279*) of any input concept, OR
+ *      (B) an instance-of (wdt:P31) of something that is a subclass (wdt:P279*) of the concept.
+ *   This UNION makes it robust for cases where origins are typed as instances vs subclasses.
+ * - We expose labels for the name (?itemLabel), the origin (?originLabel), and the matched concept (?conceptLabel).
+ *
+ * Parameters
+ * ----------
+ * @param options.conceptQids   Array of root concept QIDs (WITHOUT the "wd:" prefix).
+ *                              Examples:
+ *                                - Animals:        Q729
+ *                                - Plants:         Q756  (optionally Flowers: Q506)
+ *                                - Gemstones:      Q83437
+ *                                - Celestial obj.: Q6999 (also Star: Q523, Planet: Q634, Constellation: Q8928)
+ *                                - Deities:        Q178885
+ *                                - Saints:         Q43115
+ *                              You can pass several at once, e.g. ['Q506','Q756'] for flowers+plants.
+ *
+ * @param options.languages     Preferred UI label languages for the label service.
+ *                              Order matters; the first available will be used. Default: ['en','es','ca','fr','de'].
+ *
+ * @param options.limit         Max number of rows to return. Default: 200.
+ *
+ * @returns string              A ready-to-run SPARQL query.
+ *
+ * Notes / Caveats
+ * ---------------
+ * - Coverage depends on Wikidata quality: some given names may be missing P138 (named after),
+ *   or their origin may not be well-typed. For “Virtues” or very abstract clusters,
+ *   consider augmenting with curated lists or alternative patterns.
+ * - If you need to broaden/narrow a cluster, adjust the concept QIDs (add/remove roots).
+ * - Results are DISTINCT and ordered by case-insensitive item label.
+ */
+export function SemanticQuery(options: {
+  conceptQids: string[];
+  languages?: string[];
+  limit?: number;
+}): string {
+  const {
+    conceptQids,
+    languages = ['en', 'es', 'ca', 'fr', 'de'],
+    limit = 200,
+  } = options;
+
+  if (!conceptQids || conceptQids.length === 0) {
+    throw new Error('SemanticQuery: options.conceptQids must be a non-empty array of QIDs (e.g., ["Q506"]).');
+  }
+
+  // Build VALUES list like:  VALUES ?concept { wd:Q506 wd:Q756 }
+  const values = conceptQids.map(q => `wd:${q}`).join(' ');
+  const langParam = languages.join(',');
+
+  return `
+SELECT DISTINCT
+  ?item ?itemLabel
+  ?origin ?originLabel
+  ?concept ?conceptLabel
+WHERE {
+  # 1) Given name constraint
+  ?item wdt:P31 wd:Q202444 .
+
+  # 2) The given name is named after some origin
+  ?item wdt:P138 ?origin .
+
+  # 3) Root semantic concepts to match against (cluster seeds)
+  VALUES ?concept { ${values} }
+
+  # 4) Link the origin to the concept:
+  #    (A) origin is a subclass of the concept
+  # OR (B) origin is an instance of something that is a subclass of the concept
+  {
+    ?origin wdt:P279* ?concept .
+  } UNION {
+    ?origin wdt:P31 / wdt:P279* ?concept .
+  }
+
+  # 5) Multilingual labels (best-effort in the order provided)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "${langParam}". }
+}
+ORDER BY LCASE(STR(?itemLabel))
+LIMIT ${limit}
+`.trim();
+}
+
+
+/**
  * Envia consulta SPARQL a Wikidata
  */
 async function runQuery(query: string) {
