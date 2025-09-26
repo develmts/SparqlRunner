@@ -1,5 +1,5 @@
 // jest.global-setup.ts
-import path from "path";
+import * as path from "path";
 import { ConfigManager } from "./config";
 
 export default async function globalSetup() {
