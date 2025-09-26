@@ -2,7 +2,7 @@
 module.exports = {
   preset: "ts-jest",
   testEnvironment: "node",
-  roots: ["<rootDir>/src/v5/tests"],
+  roots: ["<rootDir>/src/__tests__"],
   testMatch: ["**/*.test.ts"],
   //testMatch: ["**/src/v5/tests/**/*.test.ts"], // només executa els tests de v5
   moduleFileExtensions: ["ts", "js", "json"],
@@ -13,8 +13,8 @@ module.exports = {
   moduleNameMapper: {
     "^\\./services/NameService$": "<rootDir>/src/v5/services/NameService.ts",
   },
-  globalSetup: "<rootDir>/src/v5/jest.global-setup.ts",
-  globalTeardown: "<rootDir>/src/v5/jest.global-teardown.ts",
+  globalSetup: "<rootDir>/jest.global-setup.ts",
+  globalTeardown: "<rootDir>/jest.global-teardown.ts",
   // 👇 Coverage
   collectCoverage: true,
   collectCoverageFrom: [

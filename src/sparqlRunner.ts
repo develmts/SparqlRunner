@@ -397,4 +397,6 @@ function main(){
   run(file, rate, queries, exec);
 }
 
-main();
+if (require.main === module) {
+  main();
+}
