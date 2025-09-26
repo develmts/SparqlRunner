@@ -357,6 +357,7 @@ async function run(
 
       seedResult =  await resolveNameQueries(seed, "en")
       console.log(`✅ ${seed}: variants=${seedResult.variants.length}, translations=${seedResult.translations.length}`);
+      mergedResults.push(seedResult);
     } catch (err) {
       console.error(`❌ ${seed}:`, err);
       throw new Error (err as any);
