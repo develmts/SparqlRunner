@@ -171,7 +171,7 @@ function buildTranslationsQuery(qid: string): string {
  * - If you need to broaden/narrow a cluster, adjust the concept QIDs (add/remove roots).
  * - Results are DISTINCT and ordered by case-insensitive item label.
  */
-export function SemanticQuery(options: {
+export function buildSemanticQuery(options: {
   conceptQids: string[];
   languages?: string[];
   limit?: number;
@@ -324,7 +324,7 @@ async function run(
   const totalQueries = totalSeeds * queriesPerSeed;
   const seconds = totalQueries / rate;
 
-  console.log("📊 Estimació d'execució SPARQL");
+  console.log("Estimació d'execució SPARQL");
   console.log(`- Seeds: ${totalSeeds}`);
   console.log(`- Consultes per seed: ${queriesPerSeed}`);
   console.log(`- Total consultes: ${totalQueries}`);
@@ -332,11 +332,15 @@ async function run(
   console.log(`- Temps estimat: ${seconds.toFixed(1)} s (~${(seconds / 60).toFixed(1)} min)`);
 
   if (!exec) {
-    console.log("\nℹ️ Mode estimació. Passa --exec per fer les consultes reals.");
+    console.log("\nEstimation Mode. Use --exec to force real queries.");
     return;
   }
-
-  console.log("\n🚀 Executant consultes reals...\n", seeds);
+  console.log("\nExecuting real Queries...\n", seeds);
+  const outPath = path.resolve("data/raw/sparql_results.json");
+  if (!fs.existsSync(outPath)){
+    throw new Error ( `OUtput part ${outPath}  doesn't exist`)
+  }
+ 
 
   for (const seed of seeds) {
     // const seedResult: any = { seed, queries: {} };
@@ -356,9 +360,10 @@ async function run(
       // seedResult.queries.translations = translationsResult;
 
       seedResult =  await resolveNameQueries(seed, "en")
-      console.log(`✅ ${seed}: variants=${seedResult.variants.length}, translations=${seedResult.translations.length}`);
+      console.log(`${seed}: variants=${seedResult.variants.length}, translations=${seedResult.translations.length}`);
+      mergedResults.push(seedResult);
     } catch (err) {
-      console.error(`❌ ${seed}:`, err);
+      console.error(`${seed}:`, err);
       throw new Error (err as any);
     }
 
@@ -366,10 +371,10 @@ async function run(
     await new Promise((r) => setTimeout(r, 1000 / rate));
   }
 
-  const outPath = path.resolve("data/raw/sparql_results.json");
+  // const outPath = path.resolve("data/raw/sparql_results.json");
   fs.writeFileSync(outPath, JSON.stringify(mergedResults, null, 2), "utf-8");
-  console.log(`\n💾 Guardat arxiu global: ${outPath}`);
-  console.log("✅ Fi.");
+  console.log(`\nGlobal file: ${outPath} saved`);
+  console.log("Done.");
 }
 
 /**
@@ -396,4 +401,6 @@ function main(){
   run(file, rate, queries, exec);
 }
 
-main();
+if (require.main === module){
+  main();
+}
