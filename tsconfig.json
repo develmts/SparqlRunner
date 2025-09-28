@@ -15,7 +15,7 @@
     "./v1/**/*.ts",
     "./v2/**/*.ts",
     "./v3/**/*.ts"
-  ],
+, ".sandbox/checkConfig.ts"  ],
   "exclude": [
     "node_modules"
   ]

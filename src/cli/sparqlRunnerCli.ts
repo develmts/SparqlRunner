@@ -1,6 +1,6 @@
 #!/usr/bin/env ts-node
 
-import { ConfigManager } from "../config";
+import { ConfigManager } from "../ConfigManager";
 import minimist from "minimist";
 import { SparqlRunner, SparqlRunnerCliOptions } from "../sparqlRunner";
 
@@ -56,9 +56,7 @@ function parseArgs(argv: string[]): ParsedArgs {
 // export async function runCli(argv: string[]): Promise<void> {
 export async function runCli(): Promise<void> {
   const cfg = ConfigManager.config(process.cwd())
-  if (cfg.verbose)
-    console.dir(cfg)
-  process.exit()
+
   let parsed: ParsedArgs;
   try {
     parsed = parseArgs(process.argv);

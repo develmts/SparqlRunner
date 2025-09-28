@@ -1,4 +1,4 @@
-import { ConfigManager } from './src/config'
+import { ConfigManager } from './src/ConfigManager'
 import { SparqlRunner} from './src/sparqlRunner'
 import {runCli } from './src/cli/sparqlRunnerCli'
 

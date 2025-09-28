@@ -113,6 +113,56 @@ export class SparqlRunner {
     return mergedResults;
   }
 
+/**
+ * Build and return a semantic SPARQL query string.
+ *
+ * This is a public wrapper around the internal query builder,
+ * intended for testing and advanced use cases.
+ *
+ * @param params.conceptQids - QIDs representing the semantic cluster (e.g. ["Q506", "Q756"]).
+ * @param params.languages - Preferred languages in order of priority (defaults to ["en","es","ca","fr","de"]).
+ * @param params.limit - Maximum number of results (default: 200).
+ */
+public static semanticQuery(params: {
+  conceptQids: string[];
+  languages?: string[];
+  limit?: number;
+}): string {
+  return this.buildSemanticQuery(params); // 👈 buildSemanticQuery continua private
+}
+
+// dins de la classe SparqlRunner
+/**
+ * Public helper for testing query builders.
+ * 
+ * Allows unit tests to validate the generated SPARQL without
+ * exposing individual private builder functions as public API.
+ *
+ * @param type - The query type ("lookup" | "variants" | "translations" | "semantic")
+ * @param params - Parameters specific to the builder
+ */
+
+            
+public static testSparqlQuery(
+    type: "lookup" | "variants" | "translations" | "semantic",
+    params: any
+  ): string {
+    switch (type) {
+      case "lookup":
+        return this.buildLookupQuery(params.name, params.locale);
+      case "variants":
+        return this.buildVariantsQuery(params.qid);
+      case "translations":
+        return this.buildTranslationsQuery(params.qid);
+      case "semantic":
+        return this.buildSemanticQuery(params);
+      default:
+        throw new Error(`[SparqlRunner] Unknown test query type: ${type}`);
+    }
+  }
+
+
+
   private static asBindings(res: any): any[] {
     if (!res) return [];
     if (Array.isArray(res)) return res;
@@ -125,16 +175,40 @@ export class SparqlRunner {
   }
 
   private static buildLookupQuery(name: string, locale: string): string {
-    const lang = locale.split(/[-_]/)[0];
-    const safe = name.toLowerCase();
+    // const lang = (locale || "en").split(/[-_]/)[0];
+    // const safe = name.toLowerCase();
+
+    // normalize language code to primary subtag (en, ca, es, ...)
+    const lang = (locale || "en").split(/[-_]/)[0];
+
+    // escape quotes in the label literal
+    const label = this.escapeQuotes(name);
+
+    // default language preference (keep consistent across builders)
+    const defaults = ["en", "es", "ca", "fr", "de"];
+
+    // put requested lang first, then defaults, dedup while preserving order
+    const langs = [lang, ...defaults].filter((v, i, a) => a.indexOf(v) === i).join(",");
+
+    // return `
+    //   SELECT ?item ?itemLabel WHERE {
+    //     ?item wdt:P31 wd:Q202444.
+    //     SERVICE wikibase:label { bd:serviceParam wikibase:language "${lang},en,es,fr,ca". }
+    //     FILTER(LCASE(?itemLabel) = "${safe}")
+    //   }
+    //   LIMIT 20
+    // `;
+
     return `
-      SELECT ?item ?itemLabel WHERE {
-        ?item wdt:P31 wd:Q202444.
-        SERVICE wikibase:label { bd:serviceParam wikibase:language "${lang},en,es,fr,ca". }
-        FILTER(LCASE(?itemLabel) = "${safe}")
-      }
-      LIMIT 20
-    `;
+    SELECT ?item ?itemLabel WHERE {
+      ?item wdt:P31 wd:Q202444.                     # instance of given name
+      ?item rdfs:label "${label}"@${lang}.          # exact label match with language tag
+      SERVICE wikibase:label { bd:serviceParam wikibase:language "${langs}". }
+    }
+    LIMIT 20
+  `;
+
+
   }
 
   private static buildVariantsQuery(qid: string): string {
@@ -219,7 +293,7 @@ export class SparqlRunner {
   /**
    * Build a semantic-cluster SPARQL query for GIVEN NAMES.
    */
-  static buildSemanticQuery(options: {
+  private static buildSemanticQuery(options: {
     conceptQids: string[];
     languages?: string[];
     limit?: number;
@@ -259,19 +333,3 @@ LIMIT ${limit}
   }
 }
 
-// export function buildSemanticQuery(options: {
-//   conceptQids: string[];
-//   languages?: string[];
-//   limit?: number;
-// }): string {
-//   return SparqlRunner.buildSemanticQuery(options);
-// }
-
-// if (require.main === module) {
-//   import("./cli/sparqlRunnerCli").then(({ runCli }) => {
-//     return runCli(process.argv.slice(2));
-//   }).catch((error) => {
-//     console.error(error instanceof Error ? error.message : error);
-//     process.exit(1);
-//   });
-// }
