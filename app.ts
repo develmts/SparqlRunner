@@ -1,11 +1,11 @@
 import { ConfigManager } from './src/config'
 import { SparqlRunner} from './src/sparqlRunner'
 import {runCli } from './src/cli/sparqlRunnerCli'
-ConfigManager.config(process.cwd())
 
 
 
 if (process.argv.length < 3){
+  ConfigManager.config(process.cwd())
   const runner = new SparqlRunner({
     rate: 1,
     queriesPerSeed: 1,
@@ -15,5 +15,8 @@ if (process.argv.length < 3){
   })
 }else{
   const cli = import ( './src/cli/sparqlRunnerCli')
-  runCli(process.argv)
+  ConfigManager.config(process.cwd())
+
+  // runCli(process.argv)
+  runCli()
 }

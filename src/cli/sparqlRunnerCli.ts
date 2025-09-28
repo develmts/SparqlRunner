@@ -1,5 +1,6 @@
 #!/usr/bin/env ts-node
 
+import { ConfigManager } from "../config";
 import minimist from "minimist";
 import { SparqlRunner, SparqlRunnerCliOptions } from "../sparqlRunner";
 
@@ -52,10 +53,15 @@ function parseArgs(argv: string[]): ParsedArgs {
   return { file, options };
 }
 
-export async function runCli(argv: string[]): Promise<void> {
+// export async function runCli(argv: string[]): Promise<void> {
+export async function runCli(): Promise<void> {
+  const cfg = ConfigManager.config(process.cwd())
+  if (cfg.verbose)
+    console.dir(cfg)
+  process.exit()
   let parsed: ParsedArgs;
   try {
-    parsed = parseArgs(argv);
+    parsed = parseArgs(process.argv);
   } catch (error) {
     console.error(error instanceof Error ? error.message : error);
     process.exit(1);
@@ -71,5 +77,6 @@ export async function runCli(argv: string[]): Promise<void> {
 }
 
 if (require.main === module) {
-  runCli(process.argv.slice(2));
+  // runCli(process.argv.slice(2));
+  runCli()
 }
