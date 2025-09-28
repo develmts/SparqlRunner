@@ -1,22 +1,8 @@
-import { ConfigManager } from './src/ConfigManager'
-import { SparqlRunner} from './src/sparqlRunner'
-import {runCli } from './src/cli/sparqlRunnerCli'
+import { ConfigManager } from "./src/ConfigManager";
+import { SparqlRunner } from "./src/sparqlRunner";
 
+// Initialize config (merges defaults, env, argv)
+ConfigManager.config(process.cwd());
 
-
-if (process.argv.length < 3){
-  ConfigManager.config(process.cwd())
-  const runner = new SparqlRunner({
-    rate: 1,
-    queriesPerSeed: 1,
-    exec: true,
-    locale: "en",
-    outputPath: process.cwd()
-  })
-}else{
-  const cli = import ( './src/cli/sparqlRunnerCli')
-  ConfigManager.config(process.cwd())
-
-  // runCli(process.argv)
-  runCli()
-}
+// Just delegate to SparqlRunner
+SparqlRunner.runFromConfig();

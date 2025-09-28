@@ -16,7 +16,7 @@ const default = {
   // Paths (directories relative to project root, unless absolute)
   paths: {
     // Output directory for generated files
-    out: "data/raw/",
+    out: "",   // cannot be defined here
     // Directory for source input data
     sources: "data/sources/",
     // Directory for SQL schemas or migrations

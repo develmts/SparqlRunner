@@ -59,7 +59,7 @@ interface Policy {
 export const configPolicy: Record<string, Policy> = {
   "verbose": { allowed: ["config", "cli"] },   // no env, only cli + defaults
   "locale": { allowed: ["config", "env", "cli"] }, 
-  "paths.out": { allowed: ["config", "cli"] }, // never via env
+  "paths.out": { allowed: ["cli"] ,required: true}, // never via env
   "paths.sources": { allowed: ["config"] },    // only config, fixed
   "sparql.rateLimitMs": { allowed: ["config", "env", "cli"] },
   "wikidata.endpoint": { allowed: ["config", "env"] }, // not CLI
@@ -72,7 +72,7 @@ const configDefault: AppConfig = {
   locale: "en-US",
   _args : {},
   paths: {
-    out: "data/raw/",
+    out: "",  // shoud be defined on CLI
     sources: "data/sources/",
     sql: "data/sql/",
   },

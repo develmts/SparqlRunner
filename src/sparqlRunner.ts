@@ -1,5 +1,5 @@
 #!/usr/bin/env ts-node
-
+import { ConfigManager } from "./ConfigManager";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -45,11 +45,35 @@ export class SparqlRunner {
     this.outputPath = config.outputPath ? path.resolve(config.outputPath) : DEFAULT_OUTPUT_PATH;
   }
 
-  static async runFromOptions(options: SparqlRunnerCliOptions): Promise<NameEnrichmentResult[]> {
-    const { file, ...config } = options;
-    const runner = new SparqlRunner(config);
-    return runner.run(file);
+  // static async runFromOptions(options: SparqlRunnerCliOptions): Promise<NameEnrichmentResult[]> {
+  //   const { file, ...config } = options;
+  //   const runner = new SparqlRunner(config);
+  //   return runner.run(file);
+  // }
+
+ /**
+   * Initialize SparqlRunner from the global ConfigManager
+   * and run it immediately.
+   *
+   * This is meant to replace the old sparqlRunnerCli.ts adapter.
+   */
+  static async runFromConfig() {
+    const cfg = ConfigManager.config();
+    if (!cfg.paths.out) {
+      throw new Error("[SparqlRunner] paths.out must be provided via CLI (e.g. --paths.out=out.csv)");
+    }
+    const runner = new SparqlRunner({
+      rate: cfg.sparql.rateLimitMs,
+      queriesPerSeed: 1,          // abans venia hardcoded al CLI
+      exec: true,                 // idem
+      locale: cfg.locale,
+      outputPath: cfg.paths.out,  // idem
+    });
+
+    return runner.run(cfg.paths.out);
   }
+
+
 
   async resolveName(name: string, locale: string = this.locale): Promise<NameEnrichmentResult> {
     return this.resolveNameQueries(name, locale);
@@ -160,8 +184,6 @@ public static testSparqlQuery(
         throw new Error(`[SparqlRunner] Unknown test query type: ${type}`);
     }
   }
-
-
 
   private static asBindings(res: any): any[] {
     if (!res) return [];
