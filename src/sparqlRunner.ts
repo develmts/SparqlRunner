@@ -259,19 +259,19 @@ LIMIT ${limit}
   }
 }
 
-export function buildSemanticQuery(options: {
-  conceptQids: string[];
-  languages?: string[];
-  limit?: number;
-}): string {
-  return SparqlRunner.buildSemanticQuery(options);
-}
+// export function buildSemanticQuery(options: {
+//   conceptQids: string[];
+//   languages?: string[];
+//   limit?: number;
+// }): string {
+//   return SparqlRunner.buildSemanticQuery(options);
+// }
 
-if (require.main === module) {
-  import("./cli/sparqlRunnerCli").then(({ runCli }) => {
-    return runCli(process.argv.slice(2));
-  }).catch((error) => {
-    console.error(error instanceof Error ? error.message : error);
-    process.exit(1);
-  });
-}
+// if (require.main === module) {
+//   import("./cli/sparqlRunnerCli").then(({ runCli }) => {
+//     return runCli(process.argv.slice(2));
+//   }).catch((error) => {
+//     console.error(error instanceof Error ? error.message : error);
+//     process.exit(1);
+//   });
+// }
