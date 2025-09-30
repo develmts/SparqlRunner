@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 import minimist from "minimist";
 import path from "path";
+import fs from "fs"
 
 dotenv.config({quiet:true});
 
@@ -59,7 +60,7 @@ interface Policy {
 export const configPolicy: Record<string, Policy> = {
   "verbose": { allowed: ["config", "cli"] },   // no env, only cli + defaults
   "locale": { allowed: ["config", "env", "cli"] }, 
-  "paths.out": { allowed: ["cli"] ,required: true}, // never via env
+  "paths.out": { allowed: ["config", "cli"] ,required: true}, // never via env
   "paths.sources": { allowed: ["config"] },    // only config, fixed
   "sparql.rateLimitMs": { allowed: ["config", "env", "cli"] },
   "wikidata.endpoint": { allowed: ["config", "env"] }, // not CLI
@@ -72,7 +73,7 @@ const configDefault: AppConfig = {
   locale: "en-US",
   _args : {},
   paths: {
-    out: "",  // shoud be defined on CLI
+    out: "./",  // shoud be defined on CLI
     sources: "data/sources/",
     sql: "data/sql/",
   },
@@ -86,7 +87,7 @@ const configDefault: AppConfig = {
 // Helpers
 
 
-import { config as userConfig } from "./config"
+import userConfig from  "../config.js"  
 
 const asBool = (v: any, fb: boolean) =>
   v === undefined || v === null ? fb :
@@ -363,11 +364,42 @@ export function mapConfig<T extends Record<string, any>>(
 }
 
 
+/**
+ * Load user configuration from config.json synchronously.
+ * 
+ * - Expects the file to export a plain JSON object
+ *   with the same structure as config.js.
+ * - If the file does not exist, returns an empty object.
+ * - If parsing fails, throws an error.
+ */
+export function loadJsonConfig(rootPath: string): any {
+  const jsonPath = path.resolve(rootPath, "config.json");
+
+  if (!fs.existsSync(jsonPath)) {
+    return {};
+  }
+
+  try {
+    const raw = fs.readFileSync(jsonPath, "utf-8");
+    return JSON.parse(raw);
+  } catch (err) {
+    throw new Error(`[Config] Failed to parse config.json: ${(err as Error).message}`);
+  }
+}
+
 function configFactory(rootPath: string): AppConfig {
- let cfg = configDefault as AppConfig
- cfg = mapConfig()
- cfg["rootPath"] = rootPath
- return cfg
+  let effectiveConfig : any 
+  try {
+    // // @ts-expect-error: userConfig may not exist if import was removed
+    effectiveConfig = userConfig || {};
+  } catch {
+    effectiveConfig = loadJsonConfig(rootPath);
+  }
+
+  const baseDefaults = { ...configDefault, ...effectiveConfig };
+  const cfg = mapConfig([], baseDefaults)
+  cfg["rootPath"] = rootPath
+  return cfg as AppConfig
 }
 
 export class ConfigManager {
@@ -385,10 +417,7 @@ export class ConfigManager {
   }
 }
 
-// console.log(normalizeKey("sparql.rateLimitMs"))
-// console.log(normalizeKey("db.Port"))
-// console.log(normalizeKey("extra.Option"))
-// console.log(normalizeKey("very.LongHTTPServer"));
+
 // console.log(
 //   ConfigManager.config("/")
 // )

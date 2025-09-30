@@ -1,5 +1,5 @@
 #!/usr/bin/env ts-node
-import { ConfigManager } from "./ConfigManager";
+import { ConfigManager } from "./ConfigManager.js";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -152,7 +152,7 @@ public static semanticQuery(params: {
   languages?: string[];
   limit?: number;
 }): string {
-  return this.buildSemanticQuery(params); // 👈 buildSemanticQuery continua private
+  return this.buildSemanticQuery(params); //  buildSemanticQuery continua private
 }
 
 // dins de la classe SparqlRunner
@@ -250,8 +250,8 @@ public static testSparqlQuery(
       }
     `;
   }
-
-  private async resolveNameQueries(name: string, locale: string): Promise<NameEnrichmentResult> {
+  
+  async resolveNameQueries(name: string, locale: string): Promise<NameEnrichmentResult> {
     const safeName = SparqlRunner.escapeQuotes(name);
     console.log("solving", name, locale);
 
@@ -353,5 +353,13 @@ ORDER BY LCASE(STR(?itemLabel))
 LIMIT ${limit}
 `.trim();
   }
+  /**
+   * PubliC  helpers for testing
+   */
+
+  // public async testResolveNameQueries(name: string, locale: string){ 
+  //   return this.resolveNameQueries(name, locale)
+  // }
+
 }
 

@@ -1,21 +1,26 @@
 {
   "compilerOptions": {
     "target": "ES2021",
-    "module": "commonjs",
-    "moduleResolution": "node",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "lib": ["ES2021"],                   // Ensure correct built-ins
+
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "outDir": "dist"
+    "outDir": "dist",
+
+    "baseUrl": ".",                       // Project Root
+    "paths": {
+      "@/*": ["src/*"]                    // Now you can Import as  '@/ConfigManager'
+    }
+
   },
   "include": [
     "*.ts",
-    "src/**/*.ts",
-    "./v1/**/*.ts",
-    "./v2/**/*.ts",
-    "./v3/**/*.ts"
-, ".sandbox/checkConfig.ts"  ],
+    "src/**/*.ts", ".sandbox/semanticQuery.test.ts_",
+  ],
   "exclude": [
     "node_modules"
   ]

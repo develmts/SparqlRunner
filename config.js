@@ -53,9 +53,13 @@ const default = {
  * User configuration overrides.
  * Only override the fields you need to change.
  */
-export const config = {
+// export const config = {
+export default {  
   // Example overrides:
   // verbose: true,
   // locale: "ca-ES",
-  // sparql: { rateLimitMs: 500 },
+  sparql: {
+    // Delay between queries in milliseconds (rate limiting)
+    rateLimitMs: 500,
+  },
 };

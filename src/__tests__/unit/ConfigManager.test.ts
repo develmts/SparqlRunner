@@ -1,17 +1,29 @@
-import { mapConfig, nameToEnv } from  "../../ConfigManager" //"../src/config";
+import { describe, test, expect, vi, beforeEach, afterEach} from "vitest";
+import { ConfigManager, mapConfig, nameToEnv } from  "../../ConfigManager.js" //"../src/config";
 
-const defaults = {
-  verbose: false,
-  locale: "en-US",
-  paths: {
-    out: "data/raw/",
-    sources: "data/sources/",
-    sql: "data/sql/",
-  },
-  sparql: { rateLimitMs: 1000 },
+const defaultCfg = ConfigManager.config(process.cwd())
 
-};
+// const defaultCfg = {
+//   verbose: false,
+//   locale: "en-US",
+//   paths: {
+//     out: "data/raw/",
+//     sources: "data/sources/",
+//     sql: "data/sql/",
+//   },
+//   sparql: { rateLimitMs: 1000 },
 
+// };
+let originalArgv : any
+beforeEach(() => {
+  originalArgv = process.argv
+  // to satisfy config policy
+  process.argv.push("--paths.out", "./");
+})
+
+afterEach(() => {
+  process.argv = originalArgv
+})
 describe("nameToEnv()", () => {
   it("should convert simple variable to CONSTANT_CASE", () => {
     expect(nameToEnv("variable")).toBe("VARIABLE");
@@ -25,21 +37,21 @@ describe("mapConfig()", () => {
   const OLD_ENV = process.env;
   let originalArgv: string[];
 
-  beforeEach(() => {
-    jest.resetModules();
-    process.env = { ...OLD_ENV };
-    originalArgv = process.argv;
-    process.argv = ["node", "test"];
-  });
+  // beforeEach(() => {
+  //   vi.resetModules();
+  //   process.env = { ...OLD_ENV };
+  //   originalArgv = process.argv;
+  //   process.argv = ["node", "test"];
+  // });
 
-  afterEach(() => {
-    process.env = OLD_ENV;
-    process.argv = originalArgv;
-  });
+  // afterEach(() => {
+  //   process.env = OLD_ENV;
+  //   process.argv = originalArgv;
+  // });
 
   it("should return defaults when no env or cmdline provided", () => {
     const cfg = mapConfig();
-    expect(cfg.locale).toBe(defaults.locale);
+    expect(cfg.locale).toBe(defaultCfg.locale);
     expect(cfg.verbose).toBe(false);
   });
 

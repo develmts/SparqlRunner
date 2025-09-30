@@ -1,6 +1,7 @@
-import { SparqlRunner } from "../../sparqlRunner";
+import { describe, test, expect } from "vitest";
+import { SparqlRunner } from "../../sparqlRunner.js";
 
-describe("SparqlRunner.testSparqlQuery", () => {
+describe("SparqlRunner unit test", () => {
   describe("lookup", () => {
     test("should include Q202444 and match the given name", () => {
       const q = SparqlRunner.testSparqlQuery("lookup", { name: "Rosa", locale: "en" });
